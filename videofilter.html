@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Filter – Flow Collective</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1A1752; }
+    canvas { display: block; }
+
+    #controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(10, 8, 40, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 16px 20px;
+      color: #ccc;
+      font: 12px/1.6 -apple-system, sans-serif;
+      z-index: 10;
+      min-width: 220px;
+      user-select: none;
+      transition: opacity 0.3s;
+    }
+    #controls.hidden { opacity: 0; pointer-events: none; }
+    #controls h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #888;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .slider-row label {
+      flex: 0 0 100px;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .slider-row input[type=range] {
+      flex: 1;
+      margin: 0 8px;
+      accent-color: #e85014;
+      height: 3px;
+    }
+    .slider-row .val {
+      flex: 0 0 36px;
+      text-align: right;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: #70c430;
+    }
+    #toggleBtn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 11;
+      background: rgba(10, 8, 40, 0.7);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #aaa;
+      font: 11px -apple-system, sans-serif;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="controls">
+  <h3>Video Filter</h3>
+  <div class="slider-row">
+    <label>Levels</label>
+    <input type="range" id="sLevels" min="2" max="8" value="4" step="1">
+    <span class="val" id="vLevels">4</span>
+  </div>
+  <div class="slider-row">
+    <label>Palette Intensity</label>
+    <input type="range" id="sIntensity" min="0.5" max="1.0" value="0.9" step="0.05">
+    <span class="val" id="vIntensity">0.90</span>
+  </div>
+  <div class="slider-row">
+    <label>Smoothing</label>
+    <input type="range" id="sSmooth" min="0" max="12" value="4" step="1">
+    <span class="val" id="vSmooth">4</span>
+  </div>
+</div>
+<button id="toggleBtn">Show</button>
+
+<script>
+// ── Palette (dark → light by luminance) ──────────────────
+var PALETTE = [
+  [26,  23,  82],   // BG indigo
+  [232,  80,  20],  // orange
+  [250, 140,  38],  // amber
+  [112, 196,  48],  // lime
+  [160, 226,  70],  // light lime
+  [255, 255, 255],  // white
+];
+var NUM_COLORS = PALETTE.length;
+
+// ── Parameters ───────────────────────────────────────────
+var pLevels    = 4;
+var pIntensity = 0.9;
+var pSmooth    = 4;
+
+// ── Video + offscreen canvases ───────────────────────────
+var video;
+var videoReady = false;
+var mainCanvas, mainCtx;
+var blurCanvas, blurCtx;
+
+function wireSlider(id, valId, setter) {
+  var el = document.getElementById(id);
+  var vl = document.getElementById(valId);
+  el.addEventListener('input', function() {
+    var v = parseFloat(el.value);
+    vl.textContent = v % 1 === 0 ? String(v) : v.toFixed(2);
+    setter(v);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  wireSlider('sLevels',    'vLevels',    function(v) { pLevels = v; });
+  wireSlider('sIntensity', 'vIntensity', function(v) { pIntensity = v; });
+  wireSlider('sSmooth',    'vSmooth',    function(v) { pSmooth = v; });
+
+  // H key panel toggle
+  var panel = document.getElementById('controls');
+  var btn   = document.getElementById('toggleBtn');
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'h' || e.key === 'H') {
+      panel.classList.toggle('hidden');
+      btn.style.display = panel.classList.contains('hidden') ? 'block' : 'none';
+    }
+  });
+  btn.addEventListener('click', function() {
+    panel.classList.remove('hidden');
+    btn.style.display = 'none';
+  });
+
+  init();
+});
+
+function init() {
+  // Main visible canvas
+  mainCanvas = document.createElement('canvas');
+  mainCanvas.style.display = 'block';
+  document.body.insertBefore(mainCanvas, document.body.firstChild);
+
+  // Offscreen canvas for blur pre-processing
+  blurCanvas = document.createElement('canvas');
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Start webcam
+  video = document.createElement('video');
+  video.setAttribute('playsinline', '');
+  video.setAttribute('autoplay', '');
+  video.muted = true;
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
+    .then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+      video.addEventListener('loadeddata', function() { videoReady = true; });
+    })
+    .catch(function(err) { console.error('Webcam error:', err); });
+
+  mainCtx = mainCanvas.getContext('2d', { willReadFrequently: true });
+  blurCtx = blurCanvas.getContext('2d');
+
+  requestAnimationFrame(loop);
+}
+
+function resize() {
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  mainCanvas.width = w;
+  mainCanvas.height = h;
+  blurCanvas.width = w;
+  blurCanvas.height = h;
+}
+
+// ── Posterize in-place ───────────────────────────────────
+function posterize(data, len, levels, intensity) {
+  var maxBucket = levels - 1;
+  var maxPal    = NUM_COLORS - 1;
+
+  for (var i = 0; i < len; i += 4) {
+    var r = data[i], g = data[i+1], b = data[i+2];
+
+    // Luminance
+    var lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    // Quantize into bucket 0..(levels-1)
+    var bucket = (lum * levels / 255) | 0;
+    if (bucket > maxBucket) bucket = maxBucket;
+
+    // Map bucket → palette index
+    var palIdx = (bucket * maxPal / maxBucket + 0.5) | 0;
+    if (palIdx > maxPal) palIdx = maxPal;
+
+    var pc = PALETTE[palIdx];
+
+    // Lerp original → palette by intensity
+    data[i]   = r + (pc[0] - r) * intensity + 0.5 | 0;
+    data[i+1] = g + (pc[1] - g) * intensity + 0.5 | 0;
+    data[i+2] = b + (pc[2] - b) * intensity + 0.5 | 0;
+  }
+}
+
+// ── Render loop ──────────────────────────────────────────
+function loop() {
+  requestAnimationFrame(loop);
+
+  if (!videoReady || video.readyState < 2) return;
+
+  var cw = mainCanvas.width;
+  var ch = mainCanvas.height;
+  var vw = video.videoWidth;
+  var vh = video.videoHeight;
+  if (!vw || !vh) return;
+
+  // Cover the entire canvas (like CSS object-fit: cover)
+  var scale = Math.max(cw / vw, ch / vh);
+  var sw = vw * scale;
+  var sh = vh * scale;
+  var ox = (cw - sw) / 2;
+  var oy = (ch - sh) / 2;
+
+  // Step 1: Draw video into blur canvas (mirrored) with optional CSS blur
+  blurCtx.save();
+  if (pSmooth > 0) {
+    blurCtx.filter = 'blur(' + pSmooth + 'px)';
+  } else {
+    blurCtx.filter = 'none';
+  }
+  // Mirror horizontally for webcam selfie view
+  blurCtx.translate(cw, 0);
+  blurCtx.scale(-1, 1);
+  blurCtx.drawImage(video, ox, oy, sw, sh);
+  blurCtx.restore();
+
+  // Step 2: Copy blurred frame to main canvas
+  mainCtx.drawImage(blurCanvas, 0, 0);
+
+  // Step 3: Read pixels, posterize, write back
+  var imgData = mainCtx.getImageData(0, 0, cw, ch);
+  posterize(imgData.data, imgData.data.length, pLevels, pIntensity);
+  mainCtx.putImageData(imgData, 0, 0);
+}
+</script>
+</body>
+</html>

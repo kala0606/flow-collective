@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flow Collective</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1A1752; }
+    canvas { display: block; }
+
+    #controls {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: rgba(10, 8, 40, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 16px 20px;
+      color: #ccc;
+      font: 12px/1.6 -apple-system, sans-serif;
+      z-index: 10;
+      min-width: 220px;
+      user-select: none;
+      transition: opacity 0.3s;
+    }
+    #controls.hidden { opacity: 0; pointer-events: none; }
+    #controls h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #888;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .slider-row label {
+      flex: 0 0 90px;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .slider-row input[type=range] {
+      flex: 1;
+      margin: 0 8px;
+      accent-color: #e85014;
+      height: 3px;
+    }
+    .slider-row .val {
+      flex: 0 0 36px;
+      text-align: right;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: #70c430;
+    }
+    #randBtn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 6px 0;
+      background: rgba(232, 80, 20, 0.25);
+      border: 1px solid rgba(232, 80, 20, 0.5);
+      border-radius: 6px;
+      color: #e85014;
+      font: 11px -apple-system, sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #randBtn:hover { background: rgba(232, 80, 20, 0.4); }
+    #toggleBtn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 11;
+      background: rgba(10, 8, 40, 0.7);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #aaa;
+      font: 11px -apple-system, sans-serif;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div id="controls">
+  <h3>Flow Controls</h3>
+  <div class="slider-row">
+    <label>Particles</label>
+    <input type="range" id="sNum" min="5" max="300" value="100" step="1">
+    <span class="val" id="vNum">100</span>
+  </div>
+  <div class="slider-row">
+    <label>Speed</label>
+    <input type="range" id="sSpeed" min="0.2" max="6" value="2" step="0.1">
+    <span class="val" id="vSpeed">2.0</span>
+  </div>
+  <div class="slider-row">
+    <label>Trail Length</label>
+    <input type="range" id="sTrail" min="10" max="200" value="80" step="1">
+    <span class="val" id="vTrail">80</span>
+  </div>
+  <div class="slider-row">
+    <label>Noise Scale</label>
+    <input type="range" id="sScale" min="0.0002" max="0.005" value="0.0009" step="0.0001">
+    <span class="val" id="vScale">0.0009</span>
+  </div>
+  <div class="slider-row">
+    <label>Turbulence</label>
+    <input type="range" id="sTurb" min="1" max="200" value="100" step="1">
+    <span class="val" id="vTurb">100</span>
+  </div>
+  <div class="slider-row">
+    <label>Field Drift</label>
+    <input type="range" id="sDrift" min="0" max="0.003" value="0.0004" step="0.0001">
+    <span class="val" id="vDrift">0.0004</span>
+  </div>
+  <div class="slider-row">
+    <label>Max Width</label>
+    <input type="range" id="sWidth" min="4" max="60" value="38" step="1">
+    <span class="val" id="vWidth">38</span>
+  </div>
+  <div class="slider-row">
+    <label>Octaves</label>
+    <input type="range" id="sOct" min="1" max="8" value="4" step="1">
+    <span class="val" id="vOct">4</span>
+  </div>
+  <div class="slider-row">
+    <label>Falloff</label>
+    <input type="range" id="sFall" min="0.05" max="0.95" value="0.5" step="0.05">
+    <span class="val" id="vFall">0.50</span>
+  </div>
+  <button id="randBtn">Randomise</button>
+</div>
+<button id="toggleBtn">Show</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script>
+const BG = [26, 23, 82];
+
+const PALETTE = [
+  [232,  80,  20],
+  [112, 196,  48],
+  [255, 255, 255],
+  [250, 140,  38],
+  [160, 226,  70],
+  [232,  80,  20],
+  [112, 196,  48],
+  [250, 140,  38],
+];
+
+// ── Live params ──────────────────────────────────────────
+let pNum   = 100;
+let pSpeed = 2;
+let pTrail = 80;
+let pScale = 0.0009;
+let pTurb  = 100;
+let pDrift = 0.0004;
+let pWidth = 38;
+let pOct   = 4;
+let pFall  = 0.5;
+
+let particles = [];
+let zOff = 0;
+
+// ── Slider wiring ────────────────────────────────────────
+function wireSlider(id, valId, setter) {
+  var el = document.getElementById(id);
+  var vl = document.getElementById(valId);
+  el.addEventListener('input', function() {
+    var v = parseFloat(el.value);
+    vl.textContent = v % 1 === 0 ? v : v.toFixed(4).replace(/0+$/, '').replace(/\.$/, '.0');
+    setter(v);
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  wireSlider('sNum',   'vNum',   function(v) { pNum = v; adjustCount(); });
+  wireSlider('sSpeed', 'vSpeed', function(v) { pSpeed = v; });
+  wireSlider('sTrail', 'vTrail', function(v) { pTrail = v; });
+  wireSlider('sScale', 'vScale', function(v) { pScale = v; });
+  wireSlider('sTurb',  'vTurb',  function(v) { pTurb = v; });
+  wireSlider('sDrift', 'vDrift', function(v) { pDrift = v; });
+  wireSlider('sWidth', 'vWidth', function(v) { pWidth = v; });
+  wireSlider('sOct',   'vOct',   function(v) { pOct = v; noiseDetail(pOct, pFall); });
+  wireSlider('sFall',  'vFall',  function(v) { pFall = v; noiseDetail(pOct, pFall); });
+
+  var panel = document.getElementById('controls');
+  var btn = document.getElementById('toggleBtn');
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'h' || e.key === 'H') {
+      panel.classList.toggle('hidden');
+      btn.style.display = panel.classList.contains('hidden') ? 'block' : 'none';
+    }
+  });
+  btn.addEventListener('click', function() {
+    panel.classList.remove('hidden');
+    btn.style.display = 'none';
+  });
+
+  document.getElementById('randBtn').addEventListener('click', function() {
+    randomiseAll();
+  });
+});
+
+function randRange(min, max, step) {
+  var steps = Math.round((max - min) / step);
+  return min + Math.round(Math.random() * steps) * step;
+}
+
+function setSlider(id, valId, value) {
+  var el = document.getElementById(id);
+  var vl = document.getElementById(valId);
+  el.value = value;
+  el.dispatchEvent(new Event('input'));
+}
+
+function randomiseAll() {
+  setSlider('sNum',   'vNum',   randRange(20, 250, 1));
+  setSlider('sSpeed', 'vSpeed', randRange(0.5, 5, 0.1));
+  setSlider('sTrail', 'vTrail', randRange(20, 180, 1));
+  setSlider('sScale', 'vScale', randRange(0.0003, 0.004, 0.0001));
+  setSlider('sTurb',  'vTurb',  randRange(5, 180, 1));
+  setSlider('sDrift', 'vDrift', randRange(0, 0.002, 0.0001));
+  setSlider('sWidth', 'vWidth', randRange(6, 55, 1));
+  setSlider('sOct',   'vOct',   randRange(1, 8, 1));
+  setSlider('sFall',  'vFall',  randRange(0.1, 0.85, 0.05));
+
+  // also reset the noise seed and particles
+  noiseSeed(Math.floor(Math.random() * 100000));
+  noiseDetail(pOct, pFall);
+  zOff = 0;
+  particles = [];
+  for (var i = 0; i < pNum; i++) particles.push(spawn());
+}
+
+function adjustCount() {
+  while (particles.length < pNum) particles.push(spawn());
+  while (particles.length > pNum) particles.pop();
+}
+
+// ── P5 Setup ─────────────────────────────────────────────
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  colorMode(RGB, 255, 255, 255, 255);
+  noiseSeed(floor(random(100000)));
+  noiseDetail(pOct, pFall);
+  for (var i = 0; i < pNum; i++) particles.push(spawn());
+}
+
+function spawn() {
+  var r = random();
+  var sw;
+  if      (r < 0.30) sw = random(1, 2.5);
+  else if (r < 0.55) sw = random(2.5, 6);
+  else if (r < 0.75) sw = random(6, max(7, pWidth * 0.4));
+  else if (r < 0.90) sw = random(max(7, pWidth * 0.4), max(8, pWidth * 0.7));
+  else                sw = random(max(8, pWidth * 0.7), pWidth);
+
+  var x = random(width);
+  var y = random(height);
+  // start with a single point — trail builds up naturally each frame
+  return { x: x, y: y, trail: [{x: x, y: y}], sw: sw,
+           col: random(PALETTE), bright: random(0.75, 1.0) };
+}
+
+function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+function mousePressed() {
+  var panel = document.getElementById('controls');
+  if (panel && !panel.classList.contains('hidden')) {
+    var r = panel.getBoundingClientRect();
+    if (mouseX >= r.left && mouseX <= r.right && mouseY >= r.top && mouseY <= r.bottom) return;
+  }
+  noiseSeed(floor(random(100000)));
+  zOff = 0;
+  particles = [];
+  for (var i = 0; i < pNum; i++) particles.push(spawn());
+}
+
+// ── Main Draw Loop ───────────────────────────────────────
+function draw() {
+  background(BG[0], BG[1], BG[2]);
+
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+
+    // step: compute new position from flow field
+    var a = noise(p.x * pScale, p.y * pScale, zOff) * TAU * pTurb;
+    p.x += cos(a) * pSpeed;
+    p.y += sin(a) * pSpeed;
+    p.trail.push({x: p.x, y: p.y});
+
+    // trim trail
+    while (p.trail.length > pTrail) p.trail.shift();
+
+    // respawn if out of bounds
+    if (p.x < -100 || p.x > width + 100 || p.y < -100 || p.y > height + 100) {
+      particles[i] = spawn();
+      continue;
+    }
+
+    // draw the trail
+    drawTrail(p);
+  }
+
+  zOff += pDrift;
+}
+
+// ── Drawing ──────────────────────────────────────────────
+// Uses the native 2D canvas for smooth thick lines with round caps.
+// p5's beginShape/curveVertex doesn't support strokeCap, so we
+// drop to the raw canvas context for the actual path rendering.
+
+function drawTrail(p) {
+  var trail = p.trail;
+  var n = trail.length;
+  if (n < 2) return;
+
+  var r = p.col[0] * p.bright;
+  var g = p.col[1] * p.bright;
+  var b = p.col[2] * p.bright;
+  var sw = min(p.sw, pWidth);
+
+  // get the raw canvas 2D context
+  var ctx = drawingContext;
+  ctx.save();
+
+  ctx.strokeStyle = 'rgb(' + floor(r) + ',' + floor(g) + ',' + floor(b) + ')';
+  ctx.lineWidth = sw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // build a smooth path using quadratic curves through midpoints
+  ctx.beginPath();
+  ctx.moveTo(trail[0].x, trail[0].y);
+
+  if (n === 2) {
+    ctx.lineTo(trail[1].x, trail[1].y);
+  } else {
+    // first segment: straight to midpoint of first two points
+    var mx = (trail[0].x + trail[1].x) * 0.5;
+    var my = (trail[0].y + trail[1].y) * 0.5;
+    ctx.lineTo(mx, my);
+
+    // middle segments: quadratic curves through midpoints
+    for (var i = 1; i < n - 1; i++) {
+      var cpx = trail[i].x;
+      var cpy = trail[i].y;
+      var ex = (trail[i].x + trail[i+1].x) * 0.5;
+      var ey = (trail[i].y + trail[i+1].y) * 0.5;
+      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+    }
+
+    // last segment: straight to final point
+    ctx.lineTo(trail[n-1].x, trail[n-1].y);
+  }
+
+  ctx.stroke();
+  ctx.restore();
+}
+</script>
+</body>
+</html>
