@@ -9,6 +9,21 @@
     html, body { width: 100%; height: 100%; overflow: hidden; background: #1A1752; }
     canvas { display: block; }
 
+    #logo-wrap {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 5;
+      width: 320px;
+    }
+    #logo-wrap svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.25));
+    }
+
     #controls {
       position: fixed;
       top: 16px;
@@ -84,46 +99,109 @@
       font: 11px -apple-system, sans-serif;
       padding: 4px 10px;
       cursor: pointer;
-      display: none;
+      display: block;
+    }
+    #morphBtn {
+      width: 100%;
+      margin-top: 6px;
+      padding: 6px 0;
+      background: rgba(112, 196, 48, 0.2);
+      border: 1px solid rgba(112, 196, 48, 0.45);
+      border-radius: 6px;
+      color: #70c430;
+      font: 11px -apple-system, sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #morphBtn:hover { background: rgba(112, 196, 48, 0.35); }
+    #morphBtn.off {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      color: #666;
     }
   </style>
 </head>
 <body>
-<div id="controls">
+
+<!-- Logo centred overlay — paths sampled for particle spawn points -->
+<div id="logo-wrap">
+  <svg id="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 159.8 72.4">
+    <defs>
+      <style>
+        .cls-1, .cls-2 { fill: #fff; }
+        .cls-2 {
+          font-family: Helvetica-Bold, Helvetica;
+          font-size: 12.9px;
+          font-weight: 700;
+        }
+      </style>
+    </defs>
+    <path class="cls-1" d="M101.2,37.3s0-3.7,0-23h-5.3c-.6,0-.5-.3-.6-1.2l-.2-5.6c0-.7.1-.7.8-.7,3.4,0,4.7,0,7.9,0,3.4,0,8.4-.1,11.8-.1s.8,0,.8.8l-.2,5.6c0,1,0,1.2-.6,1.2-1.4,0-3.9-.1-5.8-.1s-2.5,0-2.5.1c0,3.5,0,10,0,15.1s0,5.8,0,7.9c0,1.1-.2,1.2-.7,1.2h-4.7c-.5,0-.7,0-.7-1.2ZM110.7,40v-.2c0-3.1.2-6.5.2-9.6s0-3.3-.1-6.9c0-.8,0-1.1.7-1.1h5.5c.9,0,1,.4,1.1,1.3v16.8c0,.6,0,.5-1,.6l-5.1.2h-.5c-.5,0-.5-.1-.5-1ZM112.5,20.6c-.4,0-.8-.2-.8-1,0-1.9,0-2.7,0-2.7,0-.5.2-.9.8-.9h4.4c.6.1,1,.2,1,.8v2.9c0,.5,0,1-.6,1h-4.8Z"/>
+    <path class="cls-1" d="M121.1,37l-.2-17.2c-.4-.3-.8-1-.8-1.6v-3.4c0-1,.4-1.3,1-1.3h4.5c1.2,0,1.6.2,1.6,1.4v.8c0,4.7-.3,14.8-.3,16.4,2.8,0,6.1-1,6.1-10.4s-.4-7-.4-12.5.3-.9.9-.9h17.4c1.3,0,1.4.1,1.4,1.3v3.4c0,1.2,0,1.3-.9,1.3h-12.9c-.4,0-.6,1.7-.6,3.9s.2,7,.2,9.4c0,7.7-7.5,11.4-15,11.4s-2.1-.3-2.1-1.9ZM141.2,40h-.3c-.4,0-.4,0-.4-.3v-1.2c0-4.6-.1-10.3-.1-15.6s0-4.5,0-6.4c0-.3,0-.4.2-.4h.2l15.1-.2h.1c.3,0,.3,0,.3.4v5.6c0,.3,0,.3-2.2.3s-6.1-.1-10.2-.1-.4.9-.4,1.7.1,1.6.3,1.6h11.9c.4,0,.5,0,.5.1s0,.2,0,.3l-.2,4.5c0,.7,0,.6-.8.6l-9.8.2c0,0-.2.8-.2,1.5s0,1.1.3,1.1c.8,0,1.6.1,2.6.1,1.9,0,4.4,0,6.7-.1.5,0,.4,0,.5.4l.4,5.4c0,.5-1.9.5-2,.5h-12.5Z"/>
+    <path class="cls-1" d="M0,31.3v-1.9c0-5.2.5-13.6,9.5-13.6s4.8.1,4.8,1v7.5c0,.7,0,.8-.4.8-.5,0-1.8-.6-4.5-.6s-4.5,4.4-4.5,6.6c0,5.1,1.5,9.5,4.9,9.5s20-1.3,20.7-1.3c1,0,1.1.1,1.1.8v5.8c0,.7,0,.8-1,1,0,0-.3,0-.5,0-1.5,0-19.7.4-20.6.4h-.2c-5.4,0-9.4-3.2-9.4-16ZM15.7,24.5c0-5,.8-11.1,9-11.1s9.6,3.2,9.6,10.3c0,11.8-1.9,14.3-9.7,14.3-6.4-.1-8.9-2.2-8.9-13.5ZM30.5,25.8c0-3.3-.9-5.1-6.3-5.1s-4.3,2.2-4.3,4.2c0,3.3.6,5.5,4.3,5.5,4.7-.1,6.3-1.1,6.3-4.5Z"/>
+    <path class="cls-1" d="M38.4,48.7c-1,0-1.4,0-1.4-1.1h0c0-2.1.5-9.7.5-17s0-3.5,0-5.2h-1c-.5,0-.6,0-.6-1.1v-8.1c0-.7.2-.8.8-.8,4.7,0,5.5,0,5.5,0h.6c.6,0,.8,0,.8,1.2v23.2s2.9.3,6.8.3,7.1,0,10.1-.4h0c.5,0,.4.3.5,1.2l.2,5.9v1.3c0,.5-.2.6-.8.6-3.8,0-19.1,0-22,0ZM47.2,37.9c-1,0-1.4,0-1.4-1.1h0c.4-6.2.5-14.8.5-18.7v-.2c0-1,0-4.2.7-4.2.8,0,1.2,0,1.6,0s.8,0,1.8,0h.6c.6,0,.8,0,.8,1.2v16.1h8c.6,0,.5.3.6,1.3l.2,5c0,.7-.1.8-.8.8-3.8,0-9.6-.1-12.6-.1Z"/>
+    <g>
+      <path class="cls-1" d="M140.9,71.9h-15.5s0-2.3,0-2.3v-5.4c0-1.6.8-3,2.2-3.7s2-.8,3.2-.9l3.3-.5c1.6-.2,3.3-.8,3.4-2.4s0-1.9-.2-2.8-.9-1.6-1.8-1.8-2.7-.3-4,0c-1,.2-1.6,1-1.7,2v1.4c0,.4-.4.6-.8.6h-3.6c0-2.4-.1-4.6.6-6.8.6-1.7,1.9-3,3.7-3.6s3.8-.6,5.7-.3,4.4,2.1,5.3,4.5c.6,1.6.8,3.2.9,4.9s0,2.7-.4,4c-.9,2.9-3.2,4.1-6.1,4.6l-3.1.5c-1.1.2-2.1.6-2.1,1.7,0,.4.2.7.7.8,3.5.3,6.6-.9,10.1-1.1.3.2.4.7.5,1,.3,1.5.3,3,0,4.5l-.3,1.2Z"/>
+      <path class="cls-1" d="M140.9,71.9c0,.4-.4.6-.9.6-4.4-.1-8.7-.2-13.1,0-.7,0-1.5,0-1.5-.5h15.5Z"/>
+    </g>
+    <g>
+      <path class="cls-1" d="M156.2,71.9h-9.5c-2.7-1.3-3.6-4-4-6.9-.2-1.9-.3-3.8-.3-5.7,0-5.3,1.4-13.2,6.9-15,1.6-.5,3.4-.5,5,0,3.4,1,4.9,4.5,4.6,7.9,0,.3-.3.5-.6.5h-4c-.6,0-.9-.6-.8-1.1.1-1.1-.5-1.8-1.6-2-3.6-.4-4.3,4.5-4.3,7.6,1.9-2.1,5.3-2,7.9-1.2,1.8.7,3.2,2,3.8,3.8s.6,2.2.5,3.3l-.2,3.2c-.1,2.1-1.4,4.7-3.4,5.6ZM154.4,65.2c.7-.8.8-1.6.7-2.6-.2-1.2-.9-2.2-2.1-2.5s-2.4-.3-3.5,0c-1.7.5-2.5,2.3-1.8,4,.6,1.3,1.8,2.1,3.2,2.2,1.3.1,2.6-.2,3.5-1.2Z"/>
+      <path class="cls-1" d="M156.2,71.8c-2.8.9-6.7.8-9.6,0h9.6Z"/>
+    </g>
+    <g>
+      <path class="cls-1" d="M119.1,71.6h-6.5c-2.9-1.4-4-4.8-4.4-7.9-.4-3.2-.3-6.4,0-9.5.5-3.9,2.1-8.3,6.4-8.7s6.3,2,7.8,5.2c.8,1.8,1.3,3.6,1.5,5.6.3,2.8.2,5.7-.4,8.5s-1.9,5.7-4.5,6.9ZM117.5,65.4c1.6-.5,2.3-2,2.5-3.6.4-3.5-.2-9.5-4.4-9.5s-3.2,1.9-3.6,4c-.3,1.9-.4,3.8-.1,5.6s.9,3.5,2.8,3.7c.9.1,1.9,0,2.8-.2Z"/>
+      <path class="cls-1" d="M119.2,71.6c-2.1,1.2-4.4,1.2-6.6,0h6.6Z"/>
+    </g>
+    <g>
+      <path class="cls-1" d="M105.3,59.5c1.2-1.2,1.8-2.7,2.1-4.4.3-2,.2-4-.1-6-.6-3.8-2.6-7.1-6.6-8-1.6-.4-3.3-.4-4.9-.2,0,0,0,.2,0,.3,0,0,0,.2,0,.3,0,.2,0,3.2-.1,7.2,1.9-.1,3.5,0,4.5.2.7,0,1,.2,1.3.4,1.3.8,1.2,2.8,1.2,4.4,0,2.2-2,2.9-4,3.2l-3.7.5c-1.2.2-2.3.4-3.4.9-1.9.8-3.1,2.5-3,4.6l.2,8.8h18c.5-2.2.6-4.5.1-6.8,0-.3-.2-.8-.5-.9-4,.2-7.6,1.6-11.7,1.3-.5,0-.8-.4-.8-.9.1-3.3,7.6-1.1,11.4-4.9Z"/>
+      <path class="cls-1" d="M106.7,71.8c-.1.5-.5.7-1.1.7-5.1-.2-10-.2-15.1,0-.8,0-1.7,0-1.9-.6h18.1Z"/>
+    </g>
+    <text class="cls-2" transform="translate(2.6 11.1)"><tspan x="0" y="0" xml:space="preserve">Srishti  </tspan></text>
+    <text class="cls-2" transform="translate(44.7 11.1)"><tspan x="0" y="0" xml:space="preserve">Manipal  </tspan></text>
+    <g>
+      <path class="cls-1" d="M94.3,41.3c0-.2,0-.4,0-.5h-11c0,0-11.9.2-11.9.2-1.6,0-3,0-4.5-.2-.2-1.6-.3-3.1-.3-4.7l12.4-.4c.2,0,.4,0,.5-.1l.4-6.8h-6.5s-6.8,0-6.8,0c-.4-1.2-.3-4.1.3-4h5.5c0,0,6.7.1,6.7.1.2,0,.6,0,.7-.2v-7.7s-17.3.4-17.3.4v4c-.1,0,0,13,0,13v4.4s0,9.6,0,9.6c0,.2.2.3.4.3h21.5c0,0,9.6.1,9.6.1,0-2.5.1-5,.1-7.4Z"/>
+      <path class="cls-1" d="M96.2,31.2c1-.2,1.8-.3,2.7-.3s.2.3.2.4v6.6c0,.7-.8.8-1.6.8l-6.6.2c-1,0-2,0-3-.3-2.5-.5-4.2-2-5-4.4s-.8-3-.9-4.6c-.1-1.9,0-3.8,0-5.7.1-3.3,1.3-6.2,4.6-7.5s2.6-.8,4-.7h5c.8,0,1.6.1,2.4.4s.4.3.4.5v8.3c0,.3-.2.4-.5.4-1,0-1.9-.1-2.9-.3l-3.3-.5c-1.3-.2-2.6,0-3.9.2-.9.2-1.4.8-1.5,1.7,0,1,0,2.1.1,3.1.2,1,.9,1.7,1.9,2s2.6.4,4,.2l3.9-.6Z"/>
+    </g>
+  </svg>
+</div>
+
+<div id="controls" class="hidden">
   <h3>Flow Controls</h3>
   <div class="slider-row">
     <label>Particles</label>
-    <input type="range" id="sNum" min="5" max="300" value="100" step="1">
-    <span class="val" id="vNum">100</span>
+    <input type="range" id="sNum" min="5" max="300" value="150" step="1">
+    <span class="val" id="vNum">150</span>
   </div>
   <div class="slider-row">
     <label>Speed</label>
-    <input type="range" id="sSpeed" min="0.2" max="6" value="2" step="0.1">
+    <input type="range" id="sSpeed" min="0.2" max="3" value="2" step="0.1">
     <span class="val" id="vSpeed">2.0</span>
   </div>
   <div class="slider-row">
     <label>Trail Length</label>
-    <input type="range" id="sTrail" min="10" max="200" value="80" step="1">
+    <input type="range" id="sTrail" min="10" max="100" value="80" step="1">
     <span class="val" id="vTrail">80</span>
   </div>
   <div class="slider-row">
     <label>Noise Scale</label>
-    <input type="range" id="sScale" min="0.0002" max="0.005" value="0.0009" step="0.0001">
+    <input type="range" id="sScale" min="0.0002" max="0.01" value="0.0009" step="0.0001">
     <span class="val" id="vScale">0.0009</span>
   </div>
   <div class="slider-row">
     <label>Turbulence</label>
-    <input type="range" id="sTurb" min="1" max="200" value="100" step="1">
-    <span class="val" id="vTurb">100</span>
+    <input type="range" id="sTurb" min="1" max="10" value="18" step="1">
+    <span class="val" id="vTurb">18</span>
   </div>
   <div class="slider-row">
     <label>Field Drift</label>
-    <input type="range" id="sDrift" min="0" max="0.003" value="0.0004" step="0.0001">
-    <span class="val" id="vDrift">0.0004</span>
+    <input type="range" id="sDrift" min="0" max="0.003" value="0" step="0.0001">
+    <span class="val" id="vDrift">0</span>
   </div>
   <div class="slider-row">
     <label>Max Width</label>
-    <input type="range" id="sWidth" min="4" max="60" value="38" step="1">
+    <input type="range" id="sWidth" min="4" max="100" value="38" step="1">
     <span class="val" id="vWidth">38</span>
   </div>
   <div class="slider-row">
@@ -137,8 +215,9 @@
     <span class="val" id="vFall">0.50</span>
   </div>
   <button id="randBtn">Randomise</button>
+  <button id="morphBtn">Auto Morph: On</button>
 </div>
-<button id="toggleBtn">Show</button>
+<button id="toggleBtn">Controls</button>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 <script>
@@ -156,20 +235,114 @@ const PALETTE = [
 ];
 
 // ── Live params ──────────────────────────────────────────
-let pNum   = 100;
-let pSpeed = 2;
-let pTrail = 80;
-let pScale = 0.0009;
-let pTurb  = 100;
-let pDrift = 0.0004;
-let pWidth = 38;
-let pOct   = 4;
+let pNum   = 250;
+let pSpeed = 1.8;
+let pTrail = 180;
+let pScale = 0.09;
+let pTurb  = 10;    // kept low — auto-morph stays in low range
+let pDrift = 20;     // locked to 0 always
+let pWidth = 58;
+let pOct   = 12;
 let pFall  = 0.5;
 
-let particles = [];
-let zOff = 0;
+let particles       = [];
+let zOff            = 0;
+let morphTime       = 0;
+let burstTimer      = 0;
+let autoMorphActive = true;
 
-// ── Slider wiring ────────────────────────────────────────
+// Geometry
+const RING_R      = 30;  // imaginary circle radius around logo centre
+const RING_BUFFER = 400;   // soft-repulsion zone just outside the ring
+
+// Burst cadence
+const BURST_INTERVAL = 500;
+const BURST_COUNT    = 100;
+
+// ── Auto-morph ────────────────────────────────────────────
+// Each param follows its own sine wave with a unique phase so they all
+// evolve independently. pDrift is never touched (stays 0).
+var MORPH_INC = 0.0076; // per-frame increment (~60 s full cycle at base freq)
+
+function autoMorph() {
+  morphTime += MORPH_INC;
+  var t = morphTime;
+
+  MORPH_INC = 0.008 + 0.032 * (0.5 + 0.5 * Math.sin(t * 0.7 + 4.90)); // 0.008–0.04 (slow–fast)
+
+  pSpeed = 0.8 + 2.2  * (0.5 + 0.5 * Math.sin(t * 1.7  + 0.00));
+  pTrail = Math.round(15 + 75 * (0.5 + 0.5 * Math.sin(t * 1.3  + 1.20)));
+  pScale = 0.0004 + 0.0012 * (0.5 + 0.5 * Math.sin(t * 1.0  + 2.40));
+  pTurb  = 16  + 2   * (0.5 + 0.5 * Math.sin(t * 1.5  + 0.70)); // 6–28 (low)
+  pWidth = Math.round(10 + 32 * (0.5 + 0.5 * Math.sin(t * 1.8  + 3.10)));
+  var newOct  = Math.round(2 + 3 * (0.5 + 0.5 * Math.sin(t * 0.8  + 1.80)));
+  var newFall = 0.25 + 0.4  * (0.5 + 0.5 * Math.sin(t * 0.9  + 4.20));
+
+  if (newOct !== pOct || Math.abs(newFall - pFall) > 0.005) {
+    pOct  = newOct;
+    pFall = newFall;
+    noiseDetail(pOct, pFall);
+  }
+  pDrift = 0; // hard-lock
+
+  // Mirror into slider UI (setting .value does NOT fire 'input' events)
+  syncUI('sSpeed', 'vSpeed', pSpeed,              pSpeed.toFixed(1));
+  syncUI('sTrail', 'vTrail', pTrail,              pTrail);
+  syncUI('sScale', 'vScale', pScale,              pScale.toFixed(4));
+  syncUI('sTurb',  'vTurb',  Math.round(pTurb),  Math.round(pTurb));
+  syncUI('sWidth', 'vWidth', pWidth,              pWidth);
+  syncUI('sOct',   'vOct',   pOct,               pOct);
+  syncUI('sFall',  'vFall',  pFall,              pFall.toFixed(2));
+  syncUI('sDrift', 'vDrift', 0,                  '0');
+}
+
+function syncUI(sliderId, valId, sliderVal, displayVal) {
+  var sl = document.getElementById(sliderId);
+  var vl = document.getElementById(valId);
+  if (sl) sl.value = sliderVal;
+  if (vl) vl.textContent = displayVal;
+}
+
+// ── Particle factory ─────────────────────────────────────
+function makeStrokeWidth() {
+  var r = random();
+  if (r < 0.30) return random(1, 2.5);
+  if (r < 0.55) return random(2.5, 6);
+  if (r < 0.75) return random(6, max(7, pWidth * 0.4));
+  if (r < 0.90) return random(max(7, pWidth * 0.4), max(8, pWidth * 0.7));
+  return random(max(8, pWidth * 0.7), pWidth);
+}
+
+// All particles are born on the ring. Burst ones get an outward radial kick.
+function spawn(burst) {
+  var angle = random(TAU);
+  var cx = windowWidth  / 2;
+  var cy = windowHeight / 2;
+  var x  = cx + cos(angle) * RING_R;
+  var y  = cy + sin(angle) * RING_R;
+
+  var p = {
+    x: x, y: y,
+    trail:  [{ x: x, y: y }],
+    sw:     burst ? random(1, 3) : makeStrokeWidth(),
+    col:    random(PALETTE),
+    bright: random(0.75, 1.0)
+  };
+
+  if (burst) {
+    var spd = (2.0 + random(2.5)) * pSpeed;
+    p.vx = cos(angle) * spd;
+    p.vy = sin(angle) * spd;
+  }
+  return p;
+}
+
+function adjustCount() {
+  while (particles.length < pNum) particles.push(spawn(false));
+  while (particles.length > pNum) particles.pop();
+}
+
+// ── Slider wiring (user can still drag to momentarily override) ──
 function wireSlider(id, valId, setter) {
   var el = document.getElementById(id);
   var vl = document.getElementById(valId);
@@ -185,65 +358,44 @@ window.addEventListener('DOMContentLoaded', function() {
   wireSlider('sSpeed', 'vSpeed', function(v) { pSpeed = v; });
   wireSlider('sTrail', 'vTrail', function(v) { pTrail = v; });
   wireSlider('sScale', 'vScale', function(v) { pScale = v; });
-  wireSlider('sTurb',  'vTurb',  function(v) { pTurb = v; });
-  wireSlider('sDrift', 'vDrift', function(v) { pDrift = v; });
+  wireSlider('sTurb',  'vTurb',  function(v) { pTurb  = v; });
+  wireSlider('sDrift', 'vDrift', function()  { pDrift = 0; }); // ignored
   wireSlider('sWidth', 'vWidth', function(v) { pWidth = v; });
-  wireSlider('sOct',   'vOct',   function(v) { pOct = v; noiseDetail(pOct, pFall); });
-  wireSlider('sFall',  'vFall',  function(v) { pFall = v; noiseDetail(pOct, pFall); });
+  wireSlider('sOct',   'vOct',   function(v) { pOct   = v; noiseDetail(pOct, pFall); });
+  wireSlider('sFall',  'vFall',  function(v) { pFall  = v; noiseDetail(pOct, pFall); });
+
+  // Initialise displays
+  syncUI('sNum',   'vNum',   pNum,   pNum);
+  syncUI('sDrift', 'vDrift', 0,      '0');
+  document.getElementById('sDrift').disabled = true;
 
   var panel = document.getElementById('controls');
-  var btn = document.getElementById('toggleBtn');
+  var btn   = document.getElementById('toggleBtn');
+
+  function togglePanel() {
+    panel.classList.toggle('hidden');
+    btn.style.display = panel.classList.contains('hidden') ? 'block' : 'none';
+  }
+  btn.addEventListener('click', togglePanel);
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'h' || e.key === 'H') {
-      panel.classList.toggle('hidden');
-      btn.style.display = panel.classList.contains('hidden') ? 'block' : 'none';
-    }
+    if (e.key === 'h' || e.key === 'H') togglePanel();
   });
-  btn.addEventListener('click', function() {
-    panel.classList.remove('hidden');
-    btn.style.display = 'none';
+
+  document.getElementById('morphBtn').addEventListener('click', function() {
+    autoMorphActive = !autoMorphActive;
+    this.textContent = 'Auto Morph: ' + (autoMorphActive ? 'On' : 'Off');
+    this.classList.toggle('off', !autoMorphActive);
   });
 
   document.getElementById('randBtn').addEventListener('click', function() {
-    randomiseAll();
+    // Jump the morph to a random phase and reseed noise
+    morphTime = Math.random() * 6283;
+    noiseSeed(Math.floor(Math.random() * 100000));
+    zOff = 0;
+    particles = [];
+    for (var i = 0; i < pNum; i++) particles.push(spawn(false));
   });
 });
-
-function randRange(min, max, step) {
-  var steps = Math.round((max - min) / step);
-  return min + Math.round(Math.random() * steps) * step;
-}
-
-function setSlider(id, valId, value) {
-  var el = document.getElementById(id);
-  var vl = document.getElementById(valId);
-  el.value = value;
-  el.dispatchEvent(new Event('input'));
-}
-
-function randomiseAll() {
-  setSlider('sNum',   'vNum',   randRange(20, 250, 1));
-  setSlider('sSpeed', 'vSpeed', randRange(0.5, 5, 0.1));
-  setSlider('sTrail', 'vTrail', randRange(20, 180, 1));
-  setSlider('sScale', 'vScale', randRange(0.0003, 0.004, 0.0001));
-  setSlider('sTurb',  'vTurb',  randRange(5, 180, 1));
-  setSlider('sDrift', 'vDrift', randRange(0, 0.002, 0.0001));
-  setSlider('sWidth', 'vWidth', randRange(6, 55, 1));
-  setSlider('sOct',   'vOct',   randRange(1, 8, 1));
-  setSlider('sFall',  'vFall',  randRange(0.1, 0.85, 0.05));
-
-  // also reset the noise seed and particles
-  noiseSeed(Math.floor(Math.random() * 100000));
-  noiseDetail(pOct, pFall);
-  zOff = 0;
-  particles = [];
-  for (var i = 0; i < pNum; i++) particles.push(spawn());
-}
-
-function adjustCount() {
-  while (particles.length < pNum) particles.push(spawn());
-  while (particles.length > pNum) particles.pop();
-}
 
 // ── P5 Setup ─────────────────────────────────────────────
 function setup() {
@@ -251,23 +403,7 @@ function setup() {
   colorMode(RGB, 255, 255, 255, 255);
   noiseSeed(floor(random(100000)));
   noiseDetail(pOct, pFall);
-  for (var i = 0; i < pNum; i++) particles.push(spawn());
-}
-
-function spawn() {
-  var r = random();
-  var sw;
-  if      (r < 0.30) sw = random(1, 2.5);
-  else if (r < 0.55) sw = random(2.5, 6);
-  else if (r < 0.75) sw = random(6, max(7, pWidth * 0.4));
-  else if (r < 0.90) sw = random(max(7, pWidth * 0.4), max(8, pWidth * 0.7));
-  else                sw = random(max(8, pWidth * 0.7), pWidth);
-
-  var x = random(width);
-  var y = random(height);
-  // start with a single point — trail builds up naturally each frame
-  return { x: x, y: y, trail: [{x: x, y: y}], sw: sw,
-           col: random(PALETTE), bright: random(0.75, 1.0) };
+  for (var i = 0; i < pNum; i++) particles.push(spawn(false));
 }
 
 function windowResized() { resizeCanvas(windowWidth, windowHeight); }
@@ -279,87 +415,124 @@ function mousePressed() {
     if (mouseX >= r.left && mouseX <= r.right && mouseY >= r.top && mouseY <= r.bottom) return;
   }
   noiseSeed(floor(random(100000)));
+  morphTime = Math.random() * 6283;
   zOff = 0;
   particles = [];
-  for (var i = 0; i < pNum; i++) particles.push(spawn());
+  for (var i = 0; i < pNum; i++) particles.push(spawn(false));
 }
 
 // ── Main Draw Loop ───────────────────────────────────────
 function draw() {
   background(BG[0], BG[1], BG[2]);
 
+  if (autoMorphActive) autoMorph();
+
+  var cx = windowWidth  / 2;
+  var cy = windowHeight / 2;
+
+  // Periodic burst of fresh particles shooting outward from the ring
+  burstTimer++;
+  if (burstTimer >= BURST_INTERVAL) {
+    burstTimer = 0;
+    for (var b = 0; b < BURST_COUNT; b++) particles.push(spawn(true));
+    while (particles.length > pNum + BURST_COUNT * 30) particles.shift();
+  }
+
   for (var i = 0; i < particles.length; i++) {
     var p = particles[i];
 
-    // step: compute new position from flow field
-    var a = noise(p.x * pScale, p.y * pScale, zOff) * TAU * pTurb;
-    p.x += cos(a) * pSpeed;
-    p.y += sin(a) * pSpeed;
-    p.trail.push({x: p.x, y: p.y});
+    // Distance from centre
+    var dx   = p.x - cx;
+    var dy   = p.y - cy;
+    var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
 
-    // trim trail
+    // Flow field step
+    var a     = noise(p.x * pScale, p.y * pScale, zOff) * TAU * pTurb;
+    var flowX = cos(a) * pSpeed;
+    var flowY = sin(a) * pSpeed;
+
+    // ── Soft repulsion within the buffer zone ────────────
+    // t = 1 right at the ring surface, 0 at the outer edge of the buffer.
+    // Blends the flow direction with a pure outward push.
+    if (dist < RING_R + RING_BUFFER) {
+      var t      = 1 - Math.max(0, (dist - RING_R) / RING_BUFFER);
+      var repelX = (dx / dist) * pSpeed * 3.5;
+      var repelY = (dy / dist) * pSpeed * 3.5;
+      flowX = flowX * (1 - t) + repelX * t;
+      flowY = flowY * (1 - t) + repelY * t;
+    }
+
+    // Apply movement
+    if (p.vx !== undefined) {
+      p.x  += flowX * 0.55 + p.vx;
+      p.y  += flowY * 0.55 + p.vy;
+      p.vx *= 0.91;
+      p.vy *= 0.91;
+      if (Math.abs(p.vx) < 0.05 && Math.abs(p.vy) < 0.05) { delete p.vx; delete p.vy; }
+    } else {
+      p.x += flowX;
+      p.y += flowY;
+    }
+
+    // ── Hard clamp — particles can never cross inside the ring ──
+    var ndx  = p.x - cx;
+    var ndy  = p.y - cy;
+    var ndist = Math.sqrt(ndx * ndx + ndy * ndy) || 0.001;
+    if (ndist < RING_R) {
+      var sc = RING_R / ndist;
+      p.x = cx + ndx * sc;
+      p.y = cy + ndy * sc;
+      // Correct the last trail point so the trail doesn't pierce the ring
+      p.trail[p.trail.length - 1] = { x: p.x, y: p.y };
+    }
+
+    p.trail.push({ x: p.x, y: p.y });
     while (p.trail.length > pTrail) p.trail.shift();
 
-    // respawn if out of bounds
     if (p.x < -100 || p.x > width + 100 || p.y < -100 || p.y > height + 100) {
-      particles[i] = spawn();
+      particles[i] = spawn(false);
       continue;
     }
 
-    // draw the trail
     drawTrail(p);
   }
 
-  zOff += pDrift;
+  // pDrift is always 0 so zOff never advances — field is static in time
 }
 
 // ── Drawing ──────────────────────────────────────────────
-// Uses the native 2D canvas for smooth thick lines with round caps.
-// p5's beginShape/curveVertex doesn't support strokeCap, so we
-// drop to the raw canvas context for the actual path rendering.
-
 function drawTrail(p) {
   var trail = p.trail;
   var n = trail.length;
   if (n < 2) return;
 
-  var r = p.col[0] * p.bright;
-  var g = p.col[1] * p.bright;
-  var b = p.col[2] * p.bright;
+  var r  = p.col[0] * p.bright;
+  var g  = p.col[1] * p.bright;
+  var b  = p.col[2] * p.bright;
   var sw = min(p.sw, pWidth);
 
-  // get the raw canvas 2D context
   var ctx = drawingContext;
   ctx.save();
-
   ctx.strokeStyle = 'rgb(' + floor(r) + ',' + floor(g) + ',' + floor(b) + ')';
-  ctx.lineWidth = sw;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+  ctx.lineWidth   = sw;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
 
-  // build a smooth path using quadratic curves through midpoints
   ctx.beginPath();
   ctx.moveTo(trail[0].x, trail[0].y);
 
   if (n === 2) {
     ctx.lineTo(trail[1].x, trail[1].y);
   } else {
-    // first segment: straight to midpoint of first two points
     var mx = (trail[0].x + trail[1].x) * 0.5;
     var my = (trail[0].y + trail[1].y) * 0.5;
     ctx.lineTo(mx, my);
-
-    // middle segments: quadratic curves through midpoints
-    for (var i = 1; i < n - 1; i++) {
-      var cpx = trail[i].x;
-      var cpy = trail[i].y;
-      var ex = (trail[i].x + trail[i+1].x) * 0.5;
-      var ey = (trail[i].y + trail[i+1].y) * 0.5;
-      ctx.quadraticCurveTo(cpx, cpy, ex, ey);
+    for (var j = 1; j < n - 1; j++) {
+      var ex = (trail[j].x + trail[j + 1].x) * 0.5;
+      var ey = (trail[j].y + trail[j + 1].y) * 0.5;
+      ctx.quadraticCurveTo(trail[j].x, trail[j].y, ex, ey);
     }
-
-    // last segment: straight to final point
-    ctx.lineTo(trail[n-1].x, trail[n-1].y);
+    ctx.lineTo(trail[n - 1].x, trail[n - 1].y);
   }
 
   ctx.stroke();
